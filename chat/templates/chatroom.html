@@ -1,42 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="w-full max-w-2xl bg-white p-6 rounded-lg shadow-lg">
+        <h2 class="text-xl font-bold mb-4">Chat Room: {{ room_name }}</h2>
+        <div id="chat-log" class="border border-gray-300 p-4 h-80 overflow-y-auto bg-gray-50 rounded-lg"></div>
+        
+        <div class="mt-4 flex">
+            <input id="chat-message-input" type="text" class="flex-1 p-2 border rounded-lg focus:outline-none" placeholder="Type a message...">
+            <button id="chat-message-submit" class="ml-2 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                Send
+            </button>
+        </div>
+    </div>
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             const roomName = "{{ room_name }}";
-            const chatSocket = new WebSocket(
-                "ws://" + window.location.host + "/ws/chat/" + roomName + "/"
-            );
+            const chatSocket = new WebSocket("ws://" + window.location.host + "/ws/chat/" + roomName + "/");
 
             chatSocket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
-                document.querySelector("#chat-log").innerHTML += "<p><strong>" + data.username + ":</strong> " + data.message + "</p>";
-            };
-
-            chatSocket.onclose = function (e) {
-                console.error("Chat socket closed unexpectedly");
+                const chatLog = document.querySelector("#chat-log");
+                chatLog.innerHTML += `<p class="p-2 bg-gray-200 rounded-lg my-1"><strong>${data.username}:</strong> ${data.message}</p>`;
+                chatLog.scrollTop = chatLog.scrollHeight;
             };
 
             document.querySelector("#chat-message-submit").onclick = function (e) {
                 const messageInput = document.querySelector("#chat-message-input");
                 const message = messageInput.value;
-                const username = "Raj kelawala"; // You can replace this with a real username
-
-                chatSocket.send(JSON.stringify({
-                    "message": message,
-                    "username": username
-                }));
-
+                chatSocket.send(JSON.stringify({ "message": message, "username": "User1" }));
                 messageInput.value = "";
             };
         });
     </script>
-</head>
-<body>
-    <h2>Chat Room: {{ room_name }}</h2>
-    <div id="chat-log"></div>
-    <input id="chat-message-input" type="text">
-    <button id="chat-message-submit">Send</button>
 </body>
 </html>
