@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const roomName = "{{ room_name }}";
+            const chatSocket = new WebSocket(
+                "ws://" + window.location.host + "/ws/chat/" + roomName + "/"
+            );
+
+            chatSocket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+                document.querySelector("#chat-log").innerHTML += "<p><strong>" + data.username + ":</strong> " + data.message + "</p>";
+            };
+
+            chatSocket.onclose = function (e) {
+                console.error("Chat socket closed unexpectedly");
+            };
+
+            document.querySelector("#chat-message-submit").onclick = function (e) {
+                const messageInput = document.querySelector("#chat-message-input");
+                const message = messageInput.value;
+                const username = "Raj kelawala"; // You can replace this with a real username
+
+                chatSocket.send(JSON.stringify({
+                    "message": message,
+                    "username": username
+                }));
+
+                messageInput.value = "";
+            };
+        });
+    </script>
+</head>
+<body>
+    <h2>Chat Room: {{ room_name }}</h2>
+    <div id="chat-log"></div>
+    <input id="chat-message-input" type="text">
+    <button id="chat-message-submit">Send</button>
+</body>
+</html>
