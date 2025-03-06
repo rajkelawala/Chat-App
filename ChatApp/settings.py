@@ -78,7 +78,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ChatApp.wsgi.application'
 
 # ASGI application
-ASGI_APPLICATION = "your_project_name.asgi.application"
+ASGI_APPLICATION = "ChatApp.asgi.application"
 
 # Define the channel layers (using in-memory backend for now)
 CHANNEL_LAYERS = {
@@ -92,8 +92,12 @@ CHANNEL_LAYERS = {
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ChatApp',
+        'USER': 'root',
+        'HOST': '127.0.0.1',
+        'PASSWORD': 'raj_28092003',
+        'PORT': '3306',
     }
 }
 

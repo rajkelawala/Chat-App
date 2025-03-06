@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="{% static 'chat/chat.js' %}" defer></script>
+</head>
+<body class="bg-gray-100 flex justify-center items-center h-screen">
+    
+    <div class="w-full max-w-2xl bg-white rounded-lg shadow-lg p-6">
+        <h2 class="text-xl font-bold text-center mb-4">Chat Room</h2>
+
+        <!-- Chat Box -->
+        <div id="chat-box" class="h-64 overflow-y-auto border border-gray-300 p-4 rounded bg-gray-50"></div>
+
+        <!-- Message Input -->
+        <div class="mt-4 flex">
+            <input id="message-input" type="text" class="w-full border border-gray-300 p-2 rounded-l-md focus:outline-none focus:ring focus:ring-blue-300" placeholder="Type a message...">
+            <button id="send-button" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600">Send</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            let chatSocket = new WebSocket("ws://localhost:8000/ws/chat/");
+
+            chatSocket.onmessage = function(event) {
+                let data = JSON.parse(event.data);
+                let chatBox = document.getElementById("chat-box");
+                let messageElement = document.createElement("div");
+                messageElement.classList.add("p-2", "rounded", "mb-2");
+                
+                if (data.sender === "{{ request.user.username }}") {
+                    messageElement.classList.add("bg-blue-500", "text-white", "self-end");
+                } else {
+                    messageElement.classList.add("bg-gray-200", "text-black", "self-start");
+                }
+
+                messageElement.innerHTML = `<strong>${data.sender}:</strong> ${data.message}`;
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            };
+
+            document.getElementById("send-button").onclick = function() {
+                let messageInput = document.getElementById("message-input");
+                let message = messageInput.value;
+                let sender = "{{ request.user.id }}";  // Django template variable
+                let receiver = "{{ receiver.id }}";  // Change this dynamically
+                
+                if (message.trim() !== "") {
+                    chatSocket.send(JSON.stringify({
+                        sender: sender,
+                        receiver: receiver,
+                        message: message
+                    }));
+                    messageInput.value = "";
+                }
+            };
+        });
+    </script>
+</body>
+</html>
