@@ -30,29 +30,33 @@ def register_view(request):
             messages.error(request, "Username already exists!")
             return redirect("register")
 
-        # ✅ User Create & Save
+        # ✅ Create User properly (Django will hash password automatically)
         user = User.objects.create_user(username=username, email=email, password=password)
-        user.save()
-        print("DEBUG: User Created -", user)
-        print("DEBUG: Hashed Password -", user.password)
+        user.save()  
 
-        # ✅ Re-fetch User from Database (IMPORTANT)
-        user = User.objects.get(username=username)
+        print(f"DEBUG: User Created - {user.username}")
+        print(f"DEBUG: Stored Hashed Password - {user.password}")
 
-        # ✅ Check Password Correctly
-        if check_password(password, user.password):  # ✔️ Ensure it matches hashed version
-            print("DEBUG: Password verified successfully!")
-            login(request, user)
-            return redirect("chat_page")
+        # ✅ Ensure password verification is working
+        stored_user = User.objects.get(username=username)
+        if check_password(password, stored_user.password):
+            print("DEBUG: Password verification successful!")
         else:
             print("DEBUG: Password verification failed!")
+            return redirect("register")  # Stop execution if password fails
 
-        print("DEBUG: Authentication Failed")  
-        messages.error(request, "Authentication Failed!")
-        return redirect("register")
+        # ✅ Authenticate and login
+        user = authenticate(username=username, password=password)
+        if user:
+            print("DEBUG: User Authenticated Successfully!")
+            login(request, user)
+            return redirect("chat_page", user_id=authenticated_user.id)
+        else:
+            print("DEBUG: Authentication Failed!")
+            messages.error(request, "Authentication failed!")
+            return redirect("register")
 
     return render(request, "register.html")
-
 
 def login_view(request):
     if request.method == "POST":
@@ -66,7 +70,7 @@ def login_view(request):
         if user is not None:
             print("DEBUG: User authenticated successfully")  # 🔴 Debugging
             login(request, user)
-            return redirect("chat_page")  # ✅ Redirect to chat page
+            return redirect("chat_page", user_id=user.id)  # ✅ Redirect to chat page
         else:
             print("DEBUG: Authentication failed")  # 🔴 Debugging
             messages.error(request, "Invalid username or password")
